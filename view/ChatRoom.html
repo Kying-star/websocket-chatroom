@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>聊天室</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+    <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+    <![endif]-->
+    <link rel="stylesheet" href="css/layout.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>聊天室</h1>
+        <div class="row" id="login">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="uesrname">姓名</label>
+                    <input class="form-control" id="uesrname" placeholder="姓名昵称">
+                </div>
+                <button class="btn btn-default" id="show-btn">登录</button>
+            </div>
+        </div>
+        <div class="row" id="content">
+            <div class="col-md-12" id="chatcon">
+                <div class="con-item" >
+                    <p><span class="label label-info">林一星</span></p>
+                    <p><span class="alert alert-warning">hhhhhhhh</span></p>
+                </div>
+                <div class="con-item">
+                    <p><span class="label label-info">林七星</span></p>
+                    <p><span class="alert alert-success">hhhhhhhh</span></p>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <textarea class="form-control" rows="3" id="msgcon">
+
+                </textarea>
+                <button type="submit" class="btn btn-success" id="send-btn">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="js/jquery.min.js"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket;
+        var uname;
+        function createTpl(data,flag) {
+            var str = `
+                <div class="con-item">
+                    <p>
+                        <span class="label label-info">${data.user}</span>
+                    </p>
+                    <p>
+                        <span class="alert alert-${flag?'success':'warning'}">${data.msg}</span>
+                    </p>
+                </div>
+                `
+                    return str;
+        }
+        $('#show-btn').on('click', () => {
+            var uname = document.getElementById('uesrname').value;
+            if (uname === '') { return; }
+            $('#login').hide();
+            $('#content').show();
+            socket = io('ws://localhost:3000');
+
+            socket.on('connect', () => {
+                console.log('连接成功');
+                socket.emit('login', uname)
+            });
+            socket.on('msg', (data) => {
+                console.log(data);
+               var flag =  data.user == uname;
+               var tpl = createTpl(data,flag);
+               $('#chatcon').append(tpl);
+
+            });
+            socket.on('disconnect', () => {
+                console.log('连接已断开');
+            });
+        })
+
+        //点击提交，发送信息到服务端
+        $('#send-btn').on('click', () => {
+            //   console.log($('#msgcon').val());
+            socket.emit('send', $('#msgcon').val())
+        })
+    </script>
+
+</body>
+
+</html>

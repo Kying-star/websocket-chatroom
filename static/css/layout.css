@@ -1,0 +1,4 @@
+#login{display: block}
+#content{display:none;height: 400px;border: 2px solid #ccc;border-radius: 5px;}
+.alert{padding: 8px;}
+.con-item{margin:14px 0 14px }
